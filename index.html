@@ -7,8 +7,9 @@
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Calculadora">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1011/1011301.png">
+    <meta name="apple-mobile-web-app-title" content="Precios">
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2454/2454282.png">
 
     <style>
         :root {
@@ -29,71 +30,74 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Evita que el usuario seleccione texto accidentalmente, excepto en inputs */
+        /* Bloqueo de selección para sentirlo como App */
         * { -webkit-user-select: none; user-select: none; }
         input, select { -webkit-user-select: auto; user-select: auto; }
 
         .card { 
             background: white; 
             padding: 2rem; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-            width: 90%; 
-            max-width: 400px; 
+            border-radius: 25px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1); 
+            width: 85%; 
+            max-width: 380px; 
         }
 
         h2 { 
             color: var(--dark); 
             margin-top: 0; 
             text-align: center; 
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
+            font-weight: 700;
+            border-bottom: 2px solid #f0f4f8;
+            padding-bottom: 15px;
         }
 
         .input-group { margin-bottom: 1.2rem; }
 
         label { 
             display: block; 
-            margin-bottom: 0.4rem; 
+            margin-bottom: 6px; 
             font-weight: 600; 
             color: #546e7a; 
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
         }
 
         input, select { 
             width: 100%; 
-            padding: 14px; 
+            padding: 15px; 
             border: 2px solid #edf2f7; 
             border-radius: 12px; 
             box-sizing: border-box; 
-            font-size: 16px; /* Evita zoom automático en iPhone */
+            font-size: 18px; /* Tamaño ideal para móvil */
             transition: all 0.3s ease;
-            background-color: #fcfcfc;
+            background-color: #f8fafc;
         }
 
         input:focus { 
             border-color: var(--primary); 
             outline: none; 
             background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
         }
 
         .result-box { 
             background: var(--success); 
             color: white; 
-            padding: 1.2rem; 
-            border-radius: 15px; 
+            padding: 1.5rem; 
+            border-radius: 18px; 
             text-align: center; 
             margin-top: 1.5rem; 
-            transition: transform 0.2s ease;
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.2);
         }
 
-        .result-label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 4px; }
-        .result-value { font-size: 2.2rem; font-weight: 800; }
+        .result-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 5px; }
+        .result-value { font-size: 2.5rem; font-weight: 800; }
 
         .profit-info {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #27ae60;
-            margin-top: 8px;
+            margin-top: 10px;
             font-weight: 600;
             text-align: center;
         }
@@ -103,84 +107,80 @@
             color: #94a3b8; 
             margin-top: 20px; 
             text-align: center; 
-            line-height: 1.4;
-            padding: 0 10px;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Precio de Venta</h2>
+    <h2>Ventas</h2>
     
     <div class="input-group">
-        <label>Costo del Producto ($)</label>
-        <input type="number" id="costo" placeholder="0.00" oninput="calcularVenta()" inputmode="decimal">
+        <label>Costo Unitario ($)</label>
+        <input type="number" id="costo" placeholder="0.00" oninput="calcular()" inputmode="decimal">
     </div>
 
     <div class="input-group">
         <label>Margen Deseado (%)</label>
-        <input type="number" id="margen" placeholder="Ej: 30" oninput="calcularVenta()" inputmode="numeric">
+        <input type="number" id="margen" placeholder="Ej: 30" oninput="calcular()" inputmode="numeric">
     </div>
 
     <div class="input-group">
-        <label>Método de Cálculo</label>
-        <select id="tipo" onchange="calcularVenta()">
-            <option value="venta">Sobre Precio de Venta (Margen)</option>
-            <option value="costo">Sobre Costo (Markup)</option>
+        <label>Método</label>
+        <select id="tipo" onchange="calcular()">
+            <option value="venta">Margen (Sobre Venta)</option>
+            <option value="costo">Markup (Sobre Costo)</option>
         </select>
     </div>
 
-    <div class="result-box" id="resultBox">
-        <div class="result-label">Precio Sugerido</div>
+    <div class="result-box">
+        <div class="result-label">Precio Final</div>
         <div class="result-value" id="resultado">$0.00</div>
     </div>
     
-    <div class="profit-info" id="gananciaEfectiva"></div>
+    <div class="profit-info" id="gananciaNeta"></div>
 
     <p class="info" id="descripcion">
-        Escribe los valores para calcular automáticamente.
+        Introduce los datos para calcular.
     </p>
 </div>
 
 <script>
-    function calcularVenta() {
+    function calcular() {
         const costo = parseFloat(document.getElementById('costo').value);
-        const margenPorc = parseFloat(document.getElementById('margen').value);
-        const margenDecimal = margenPorc / 100;
+        const margenP = parseFloat(document.getElementById('margen').value);
         const tipo = document.getElementById('tipo').value;
-        const resElement = document.getElementById('resultado');
-        const descElement = document.getElementById('descripcion');
-        const profitElement = document.getElementById('gananciaEfectiva');
         
-        let precioVenta = 0;
+        const resLabel = document.getElementById('resultado');
+        const profitLabel = document.getElementById('gananciaNeta');
+        const descLabel = document.getElementById('descripcion');
+        
+        if (costo > 0 && !isNaN(margenP)) {
+            let precio = 0;
+            let m = margenP / 100;
 
-        if (!isNaN(costo) && !isNaN(margenPorc) && costo > 0) {
-            
             if (tipo === 'venta') {
-                // Validación: Margen no puede ser 100% o más en margen sobre venta
-                if (margenPorc >= 100) {
-                    resElement.innerText = "Error";
-                    descElement.innerText = "El margen sobre venta debe ser menor al 100%.";
-                    profitElement.innerText = "";
+                if (margenP >= 100) {
+                    resLabel.innerText = "---";
+                    profitLabel.innerText = "Margen inválido";
                     return;
                 }
-                precioVenta = costo / (1 - margenDecimal);
-                descElement.innerText = "El " + margenPorc + "% del precio final es utilidad pura.";
+                precio = costo / (1 - m);
+                descLabel.innerText = "Utilidad real del " + margenP + "% sobre el total cobrado.";
             } else {
-                precioVenta = costo * (1 + margenDecimal);
-                descElement.innerText = "Sumas el " + margenPorc + "% directamente al costo original.";
+                precio = costo * (1 + m);
+                descLabel.innerText = "Se añadió un " + margenP + "% extra al costo base.";
             }
 
-            const ganancia = precioVenta - costo;
+            let ganancia = precio - costo;
 
-            resElement.innerText = '$' + precioVenta.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            profitElement.innerText = "Ganancia neta: $" + ganancia.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        
+            resLabel.innerText = '$' + precio.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            profitLabel.innerText = "Ganas: $" + ganancia.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         } else {
-            resElement.innerText = '$0.00';
-            descElement.innerText = "Usa 'Margen sobre Venta' para asegurar tu porcentaje de utilidad real.";
-            profitElement.innerText = "";
+            resLabel.innerText = '$0.00';
+            profitLabel.innerText = "";
+            descLabel.innerText = "Introduce costo y margen para ver el resultado.";
         }
     }
 </script>
