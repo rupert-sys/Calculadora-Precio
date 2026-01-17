@@ -2,20 +2,110 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Precio de Venta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculadora de Precio</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Calculadora">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1011/1011301.png">
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: white; padding: 2.5rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        h2 { color: #2c3e50; margin-top: 0; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        :root {
+            --primary: #3498db;
+            --success: #2ecc71;
+            --dark: #2c3e50;
+            --bg: #f4f7f6;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Evita que el usuario seleccione texto accidentalmente, excepto en inputs */
+        * { -webkit-user-select: none; user-select: none; }
+        input, select { -webkit-user-select: auto; user-select: auto; }
+
+        .card { 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+            width: 90%; 
+            max-width: 400px; 
+        }
+
+        h2 { 
+            color: var(--dark); 
+            margin-top: 0; 
+            text-align: center; 
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
         .input-group { margin-bottom: 1.2rem; }
-        label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #34495e; }
-        input, select { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s; }
-        input:focus { border-color: #3498db; outline: none; }
-        .result-box { background: #2ecc71; color: white; padding: 1.5rem; border-radius: 10px; text-align: center; margin-top: 1.5rem; }
-        .result-label { font-size: 1rem; opacity: 0.9; margin-bottom: 5px; }
-        .result-value { font-size: 2rem; font-weight: bold; }
-        .info { font-size: 0.85rem; color: #7f8c8d; margin-top: 15px; text-align: center; line-height: 1.4; }
+
+        label { 
+            display: block; 
+            margin-bottom: 0.4rem; 
+            font-weight: 600; 
+            color: #546e7a; 
+            font-size: 0.9rem;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #edf2f7; 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            font-size: 16px; /* Evita zoom automático en iPhone */
+            transition: all 0.3s ease;
+            background-color: #fcfcfc;
+        }
+
+        input:focus { 
+            border-color: var(--primary); 
+            outline: none; 
+            background-color: #fff;
+        }
+
+        .result-box { 
+            background: var(--success); 
+            color: white; 
+            padding: 1.2rem; 
+            border-radius: 15px; 
+            text-align: center; 
+            margin-top: 1.5rem; 
+            transition: transform 0.2s ease;
+        }
+
+        .result-label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 4px; }
+        .result-value { font-size: 2.2rem; font-weight: 800; }
+
+        .profit-info {
+            font-size: 0.85rem;
+            color: #27ae60;
+            margin-top: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .info { 
+            font-size: 0.8rem; 
+            color: #94a3b8; 
+            margin-top: 20px; 
+            text-align: center; 
+            line-height: 1.4;
+            padding: 0 10px;
+        }
     </style>
 </head>
 <body>
@@ -25,52 +115,72 @@
     
     <div class="input-group">
         <label>Costo del Producto ($)</label>
-        <input type="number" id="costo" placeholder="Ej: 100" oninput="calcularVenta()">
+        <input type="number" id="costo" placeholder="0.00" oninput="calcularVenta()" inputmode="decimal">
     </div>
 
     <div class="input-group">
         <label>Margen Deseado (%)</label>
-        <input type="number" id="margen" placeholder="Ej: 30" oninput="calcularVenta()">
+        <input type="number" id="margen" placeholder="Ej: 30" oninput="calcularVenta()" inputmode="numeric">
     </div>
 
     <div class="input-group">
-        <label>Tipo de Cálculo</label>
+        <label>Método de Cálculo</label>
         <select id="tipo" onchange="calcularVenta()">
-            <option value="venta">Margen sobre Venta (Recomendado)</option>
-            <option value="costo">Margen sobre Costo (Markup)</option>
+            <option value="venta">Sobre Precio de Venta (Margen)</option>
+            <option value="costo">Sobre Costo (Markup)</option>
         </select>
     </div>
 
-    <div class="result-box">
-        <div class="result-label">Precio Sugerido de Venta</div>
+    <div class="result-box" id="resultBox">
+        <div class="result-label">Precio Sugerido</div>
         <div class="result-value" id="resultado">$0.00</div>
     </div>
+    
+    <div class="profit-info" id="gananciaEfectiva"></div>
 
     <p class="info" id="descripcion">
-        Usa "Margen sobre Venta" para que el % elegido sea tu utilidad real sobre el precio final.
+        Escribe los valores para calcular automáticamente.
     </p>
 </div>
 
 <script>
     function calcularVenta() {
         const costo = parseFloat(document.getElementById('costo').value);
-        const margenPorcentaje = parseFloat(document.getElementById('margen').value) / 100;
+        const margenPorc = parseFloat(document.getElementById('margen').value);
+        const margenDecimal = margenPorc / 100;
         const tipo = document.getElementById('tipo').value;
+        const resElement = document.getElementById('resultado');
+        const descElement = document.getElementById('descripcion');
+        const profitElement = document.getElementById('gananciaEfectiva');
+        
         let precioVenta = 0;
 
-        if (!isNaN(costo) && !isNaN(margenPorcentaje)) {
+        if (!isNaN(costo) && !isNaN(margenPorc) && costo > 0) {
+            
             if (tipo === 'venta') {
-                // Precio = Costo / (1 - Margen)
-                precioVenta = costo / (1 - margenPorcentaje);
-                document.getElementById('descripcion').innerText = "Con este precio, el " + (margenPorcentaje * 100) + "% del total será tu ganancia.";
+                // Validación: Margen no puede ser 100% o más en margen sobre venta
+                if (margenPorc >= 100) {
+                    resElement.innerText = "Error";
+                    descElement.innerText = "El margen sobre venta debe ser menor al 100%.";
+                    profitElement.innerText = "";
+                    return;
+                }
+                precioVenta = costo / (1 - margenDecimal);
+                descElement.innerText = "El " + margenPorc + "% del precio final es utilidad pura.";
             } else {
-                // Precio = Costo * (1 + Margen)
-                precioVenta = costo * (1 + margenPorcentaje);
-                document.getElementById('descripcion').innerText = "Has sumado un " + (margenPorcentaje * 100) + "% directo al valor del costo.";
+                precioVenta = costo * (1 + margenDecimal);
+                descElement.innerText = "Sumas el " + margenPorc + "% directamente al costo original.";
             }
-            document.getElementById('resultado').innerText = '$' + precioVenta.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const ganancia = precioVenta - costo;
+
+            resElement.innerText = '$' + precioVenta.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            profitElement.innerText = "Ganancia neta: $" + ganancia.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
         } else {
-            document.getElementById('resultado').innerText = '$0.00';
+            resElement.innerText = '$0.00';
+            descElement.innerText = "Usa 'Margen sobre Venta' para asegurar tu porcentaje de utilidad real.";
+            profitElement.innerText = "";
         }
     }
 </script>
